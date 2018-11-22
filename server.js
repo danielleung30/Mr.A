@@ -1,9 +1,12 @@
 var express = require('express');
 var session = require('cookie-session');
 var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://test:daniel6a3000@ds151402.mlab.com:51402/daniel6a3000');
 var app = express();
 
-app = express();
+
+
 app.set('view engine','ejs');
 
 var SECRETKEY1 = 'I want to pass COMPS381F';
@@ -15,6 +18,23 @@ var users = new Array(
 );
 
 app.set('view engine','ejs');
+
+
+var restaurantsSchema = require('./model/restaurants');
+var db = mongoose.connection;
+
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function (callback) {
+    var Restaurants = mongoose.model('Restaurants', restaurantsSchema);
+    var raman = new Restaurants({name: 'MkeRaman', owner: 'unknown'});
+
+    raman.save(function(err) {
+        if (err) throw err
+        console.log('Restaurants created!')
+        db.close();
+    });
+});
+
 
 app.use(session({
   name: 'session',
