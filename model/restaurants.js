@@ -12,10 +12,7 @@ var restaurantsSchema = mongoose.Schema({
         street:String,
         building:String,
         address:String,
-        coord:[{
-            0:{type:Number},
-            1:{type:Number}
-        }]
+        coord:[Number,Number]
     }],
     grades:[{user:String,score:Number}],
     owner:{type:String,required: true}
