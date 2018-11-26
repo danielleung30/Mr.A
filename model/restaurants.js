@@ -1,6 +1,5 @@
 var mongoose = require('mongoose');
 
-
 var restaurantsSchema = mongoose.Schema({
     restaurant_id: String,
     name: {type:String,required: true},
@@ -12,7 +11,7 @@ var restaurantsSchema = mongoose.Schema({
         street:String,
         building:String,
         address:String,
-        coord:[Number,Number]
+        coord:[{ lat: Number, lon: Number }]
     }],
     grades:[{user:String,score:Number}],
     owner:{type:String,required: true}

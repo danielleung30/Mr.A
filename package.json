@@ -8,7 +8,10 @@
         "ejs": "*",
         "body-parser": "*",
         "cookie-session": "*",
-        "mongoose": "~4.0.0"
+        "mongoose": "^5.3.13",
+        "mongodb": "^2.2.36",
+        "formidable": "latest",
+        "mime-types": "latest"
     },
     "engine": "node >= 0.10.0",
     "scripts": {
