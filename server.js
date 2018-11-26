@@ -8,6 +8,7 @@ var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
 var mongourl = 'mongodb://hellowah5:hellowah5@ds149682.mlab.com:49682/11664934';
+//var mongourl = 'mongodb://test:daniel6a3000@ds151402.mlab.com:51402/daniel6a3000';
 var mongoose = require('mongoose');
 //mongoose.connect('mongodb://test:daniel6a3000@ds151402.mlab.com:51402/daniel6a3000');
 
@@ -160,7 +161,42 @@ app.post('/create', function (req, res) {
 		})
 		return
 	}	
+});
+
+app.get('/search',function(req,res){
+	res.render('search',{});
+});
+
+app.post('/search',function(req,res){
+    MongoClient.connect(mongourl, function (err, db) {
+        var name = req.body.name;
+        var borough = req.body.borough;
+        var cuisine = req.body.cuisine;
+
+        var find = {};
+        if (name != "") {
+            find.name = name;
+        }
+        if (borough != "") {
+            find.borough = borough;
+        }
+        if (cuisine != "") {
+            find.cuisine = cuisine;
+        }
+        console.log(find);
+        db.collection("restaurants").find(find).toArray(function (err, result) {
+            if (err) throw err
+            if (result != null) {
+                console.log(result);
+                res.render('landing',{msg:result});
+            } else {
+                res.render('landing', {msg: 'you found nothing'});
+            }
+            db.close()
+        })
+    })
 })
+
 
 //logout
 app.get('/logout',function(req,res) {
