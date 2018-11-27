@@ -8,6 +8,7 @@ var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
 var mongourl = 'mongodb://hellowah5:hellowah5@ds149682.mlab.com:49682/11664934';
+//var mongourl = 'mongodb://test:daniel6a3000@ds151402.mlab.com:51402/daniel6a3000';
 var mongoose = require('mongoose');
 //mongoose.connect('mongodb://test:daniel6a3000@ds151402.mlab.com:51402/daniel6a3000');
 
@@ -165,8 +166,44 @@ app.post('/create', function (req, res) {
 		})
 		return
 	}	
+});
+
+app.get('/search',function(req,res){
+	res.render('search',{});
+});
+
+app.post('/search',function(req,res){
+    MongoClient.connect(mongourl, function (err, db) {
+        var name = req.body.name;
+        var borough = req.body.borough;
+        var cuisine = req.body.cuisine;
+
+        var find = {};
+        if (name != "") {
+            find.name = name;
+        }
+        if (borough != "") {
+            find.borough = borough;
+        }
+        if (cuisine != "") {
+            find.cuisine = cuisine;
+        }
+        console.log(find);
+        db.collection("restaurants").find(find).toArray(function (err, result) {
+            if (err) throw err
+
+            if (result.length != 0) {
+                console.log(result);
+                res.render('landing',{msg:result});
+            } else {
+                res.render('landing', {msg:[{name:'you found nothing'}]});
+            }
+            db.close()
+        })
+    })
 })
 
+<<<<<<< HEAD
 //restaurants list
 app.get('/read', function (req, res) {
 	console.log(req.session)
@@ -235,6 +272,70 @@ app.get("/gmap", function(req,res) {
 	});
 	res.end();
 });
+=======
+
+app.get('/api/restaurant/:by/:value',function(req,res){
+
+    MongoClient.connect(mongourl, function (err, db) {
+		var by = req.params.by;
+		var value = req.params.value;
+    	console.log(by);
+    	console.log(value);
+		switch (by) {
+			case 'name':
+                db.collection("restaurants").find({name:value}).toArray(function (err, result) {
+                    if (err) throw err
+                    if (result != null) {
+                        console.log(result);
+						res.writeHead(200, { 'Content-Type': 'application/json' });
+						result.forEach(function (ele) {
+                            res.write(JSON.stringify(ele));
+
+                        })
+						res.end();
+                    } else {
+                        res.render('landing', {msg: 'you found nothing'});
+                    }
+                    db.close()
+                })
+				break;
+			case 'borough':
+                db.collection("restaurants").find({borough:value}).toArray(function (err, result) {
+                    if (err) throw err
+                    if (result != null) {
+                        console.log(result);
+
+                    } else {
+                        res.render('landing', {msg: 'you found nothing'});
+                    }
+                    db.close()
+                })
+				break;
+			case 'cuisine':
+                db.collection("restaurants").find({cuisine:value}).toArray(function (err, result) {
+                    if (err) throw err
+                    if (result != null) {
+                        console.log(result);
+
+                    } else {
+                        res.render('landing', {msg: 'you found nothing'});
+                    }
+                    db.close()
+                })
+
+
+
+        }
+
+
+	});
+
+
+
+
+})
+
+>>>>>>> 2edb2c665555dfe63da95d5e990f94c2856910c3
 
 //logout
 app.get('/logout',function(req,res) {
