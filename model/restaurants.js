@@ -3,14 +3,14 @@ var mongoose = require('mongoose');
 var restaurantsSchema = mongoose.Schema({
     restaurant_id: String,
     name: {type:String,required: true},
-    brought: String,
-    cuisine: String,
+    borough: String,
+    cuisine: String,    
+    photoMimetype: String,
     photo : String,
-    photoMineType: {type:String, enum:['jpeg','png']},
     address:[{
         street:String,
         building:String,
-        address:String,
+        zipcode:String,
         coord:[{ lat: Number, lon: Number }]
     }],
     grades:[{user:String,score:Number}],

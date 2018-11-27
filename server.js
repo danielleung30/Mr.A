@@ -14,6 +14,9 @@ var mongoose = require('mongoose');
 var fs = require('fs');
 var formidable = require('formidable');
 
+var assert = require('assert');
+var ObjectID = require('mongodb').ObjectID;
+var util = require('util');
 
 var app = express();
 
@@ -38,7 +41,8 @@ app.get('/',function(req,res) {
 		res.redirect('/login');
 	} else {
 		res.status(200);
-		res.render('secrets',{name:req.session.username});
+		res.redirect('/read');
+		//res.render('secrets',{name:req.session.username});
 	}
 });
 
@@ -98,6 +102,7 @@ app.post('/register', function (req, res) {
 //create new restaurant
 app.get('/create', function (req, res) {
 	res.sendFile(__dirname + '/public/create.html')
+	//res.render('create');
 })
 
 app.post('/create', function (req, res) {
@@ -125,9 +130,8 @@ app.post('/create', function (req, res) {
 			var lon = fields.lon;						
 			var filename = files.photo.path;
 			var photo
-			var photoMimetype
 			if (files.photo.type) {
-				photoMimetype = files.photo.type;
+				var mimetype = files.photo.type;
 			}
 			fs.readFile(filename, function(err,data) {
 				photo = new Buffer(data).toString('base64');
@@ -137,8 +141,9 @@ app.post('/create', function (req, res) {
 				var Restaurants = mongoose.model('Restaurants', restaurantsSchema)
 				var newRestaurant = new Restaurants({
 					name: name, borough: borough,
-					cuisine: cuisine, photo: photo, 
-					photoMimetype: photoMimetype, 
+					cuisine: cuisine, 
+					photoMimetype: mimetype, 
+					photo: photo, 
 					address: [{
 						street: street, building: building,
 						zipcode: zipcode, coord: [{ lat: lat, lon: lon }]
@@ -161,6 +166,75 @@ app.post('/create', function (req, res) {
 		return
 	}	
 })
+
+//restaurants list
+app.get('/read', function (req, res) {
+	console.log(req.session)
+	if (!req.session.authenticated) {
+		res.redirect('/login')
+	} else {
+		MongoClient.connect(mongourl, function(err,db) {
+			try {
+			  assert.equal(err,null);
+			} catch (err) {
+			  res.set({"Content-Type":"text/plain"});
+			  res.status(500).end("MongoClient connect() failed!");
+			}
+			console.log('Connected to MongoDB');
+			findRestaurants(db,{}, function (restaurants) {
+			  db.close();
+			  console.log('Disconnected MongoDB');
+			  res.render('list.ejs',{name:req.session.username, restaurants:restaurants});
+			});			
+		});
+	}
+})
+
+function findRestaurants(db,criteria, callback) {
+	var cursor = db.collection('restaurants').find(criteria);
+	var restaurants = [];	
+	cursor.each(function (err, doc) {
+		assert.equal(err, null);
+		if (doc != null) {
+			restaurants.push(doc);
+		} else {
+			callback(restaurants);
+		}
+	});
+}
+
+//display restaurant
+app.get('/display', function(req,res) {
+	MongoClient.connect(mongourl, function(err,db) {
+	  try {
+		assert.equal(err,null);
+	  } catch (err) {
+		res.set({"Content-Type":"text/plain"});
+		res.status(500).end("MongoClient connect() failed!");
+	  }      
+	  console.log('Connected to MongoDB');
+	  var criteria = {};
+	  criteria['_id'] = ObjectID(req.query._id);
+	  findRestaurants(db,criteria, function(restaurants) {
+		db.close();
+		console.log('Disconnected MongoDB');
+		var lat = restaurants[0].address[0].coord[0].lat
+		var lon = restaurants[0].address[0].coord[0].lon;
+		var showGmap = ((lat&&lon) != null);
+		console.log(showGmap);
+		res.render('display.ejs',{restaurants:restaurants, g: showGmap});
+	  });
+	});
+});
+
+app.get("/gmap", function(req,res) {
+	res.render("gmap.ejs", {
+		lat:req.query.lat,
+		lon:req.query.lon,
+		name:req.query.title
+	});
+	res.end();
+});
 
 //logout
 app.get('/logout',function(req,res) {
