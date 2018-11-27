@@ -5,6 +5,7 @@
       <H3>Hello, User: <%= name %></H3>
       <H3>Showing <%= restaurants.length %> document(s)</H3>
       <p><a href=/create>Create New Restaurant</a></p>
+      <p><a href="/search">Search</a></p>
       <ol>
             <% for ( i in restaurants) { %>
               <li><a href=/display?_id=<%= restaurants[i]._id %>><%= restaurants[i].name %></a></li>        

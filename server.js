@@ -168,6 +168,7 @@ app.post('/create', function (req, res) {
 	}	
 });
 
+//Search
 app.get('/search',function(req,res){
 	res.render('search',{});
 });
@@ -193,8 +194,13 @@ app.post('/search',function(req,res){
             if (err) throw err
 
             if (result.length != 0) {
-                console.log(result);
-                res.render('landing',{msg:result});
+				console.log(result);
+				var lat = result[0].address[0].coord[0].lat
+				var lon = result[0].address[0].coord[0].lon;
+				var showGmap = ((lat&&lon) != null);
+				console.log(showGmap);
+				res.render('display.ejs',{restaurants:result, g: showGmap});
+                //res.render('landing',{msg:result});
             } else {
                 res.render('landing', {msg:[{name:'you found nothing'}]});
             }
@@ -203,7 +209,6 @@ app.post('/search',function(req,res){
     })
 })
 
-<<<<<<< HEAD
 //restaurants list
 app.get('/read', function (req, res) {
 	console.log(req.session)
@@ -264,6 +269,7 @@ app.get('/display', function(req,res) {
 	});
 });
 
+//Gmap
 app.get("/gmap", function(req,res) {
 	res.render("gmap.ejs", {
 		lat:req.query.lat,
@@ -272,7 +278,6 @@ app.get("/gmap", function(req,res) {
 	});
 	res.end();
 });
-=======
 
 app.get('/api/restaurant/:by/:value',function(req,res){
 
@@ -322,20 +327,10 @@ app.get('/api/restaurant/:by/:value',function(req,res){
                     }
                     db.close()
                 })
-
-
-
         }
-
-
 	});
-
-
-
-
 })
 
->>>>>>> 2edb2c665555dfe63da95d5e990f94c2856910c3
 
 //logout
 app.get('/logout',function(req,res) {
