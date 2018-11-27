@@ -6,7 +6,7 @@ var http = require('http');
 var url  = require('url');
 var MongoClient = require('mongodb').MongoClient; 
 var assert = require('assert');
-var ObjectId = require('mongodb').ObjectID;
+var ObjectID = require('mongodb').ObjectID;
 var mongourl = 'mongodb://hellowah5:hellowah5@ds149682.mlab.com:49682/11664934';
 //var mongourl = 'mongodb://test:daniel6a3000@ds151402.mlab.com:51402/daniel6a3000';
 var mongoose = require('mongoose');
@@ -263,11 +263,40 @@ app.get('/display', function(req,res) {
 		var lat = restaurants[0].address[0].coord[0].lat
 		var lon = restaurants[0].address[0].coord[0].lon;
 		var showGmap = ((lat&&lon) != null);
-		console.log(showGmap);
+		console.log(restaurants[0]);
+		console.log("show Gmap:"+showGmap);
 		res.render('display.ejs',{restaurants:restaurants, g: showGmap});
 	  });
 	});
 });
+
+//delete
+app.get('/delete', function (req, res) {
+	MongoClient.connect(mongourl, function(err,db) {
+		try {
+		  assert.equal(err,null);
+		} catch (err) {
+		  res.set({"Content-Type":"text/plain"});
+		  res.status(500).end("MongoClient connect() failed!");
+		}      
+		console.log('Connected to MongoDB');
+		var criteria = {};
+		criteria['_id'] = ObjectID(req.query._id);
+		findRestaurants(db,criteria, function(restaurants) {
+		  var isOwner = false;
+		  if(restaurants[0].owner == req.session.username){
+			isOwner = true;
+			console.log("User: "+restaurants[0].owner+" Deleted Restaurants:" + restaurants[0].name);
+			db.collection("restaurants").remove({ _id: criteria['_id'] });			
+		  } else {
+			console.log("You are not authorized to delete!!! ")
+		  }
+		  db.close();
+		  console.log('Disconnected MongoDB');
+		  res.render('remove.ejs',{g: isOwner});
+		});
+	});
+})
 
 //Gmap
 app.get("/gmap", function(req,res) {
