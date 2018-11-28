@@ -1,6 +1,7 @@
 <html>
-<body>
-	<h1>Modify Restaruant <%= restaurants[0].name %></h1>
+<body>    
+    <h1>Modify Restaruant <%= restaurants[0].name %></h1>
+    <%_ if (g) { %>
     <form action="/change?_id=<%= restaurants[0]._id %>" method="post" enctype="multipart/form-data">
         Name: <input type="text" name="name" value="<%= restaurants[0].name %>"><br>
         Borough: <input type="text" name="borough" value="<%= restaurants[0].borough %>"><br>
@@ -12,6 +13,9 @@
         GPS Coordinates (Lon.): <input type="text" name="lon" value="<%= restaurants[0].address[0].coord[0].lon %>"><br>
         Photo: <input type="file" name="photo"><br>
     <input type="submit" value="Change">
+    <%_ }else{ %>
+        <h3>You are not authorized to update!!! </h3> 
+    <%_ } %>
     <a href="/"><button>Home</button></a>
 	</form>
 </body>
