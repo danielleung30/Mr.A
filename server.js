@@ -107,6 +107,7 @@ app.get('/create', function (req, res) {
 })
 
 app.post('/create', function (req, res) {
+
 	if (req.url == '/create' && req.method.toLowerCase() == 'post') {
 		var form = new formidable.IncomingForm();
 		console.log("About to parse...");		
@@ -151,15 +152,24 @@ app.post('/create', function (req, res) {
 					}], 
 					owner: req.session.username
 				})
-	
+
+				console.log(typeof newRestaurant);
+
 				newRestaurant.validate(function (err) {
 					console.log(err);
 				})
 	
-				newRestaurant.save(function (err) {
-					if (err) throw err
+				newRestaurant.save(function (err,documentInserted) {
+					if (err) {
+                        res.writeHead(200, { 'Content-Type': 'application/json' });
+                        res.write(JSON.stringify({status:'failed'}));
+						db.close();
+					}else{
 					console.log('Restaurants created!')
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+					res.write(JSON.stringify({status:'ok',_id:documentInserted._id}));
 					db.close();
+					}
 				});
 			});
 
@@ -351,7 +361,6 @@ app.get('/api/restaurant/:by/:value',function(req,res){
 						res.writeHead(200, { 'Content-Type': 'application/json' });
 						result.forEach(function (ele) {
                             res.write(JSON.stringify(ele));
-
                         })
 						res.end();
                     } else {
@@ -365,7 +374,10 @@ app.get('/api/restaurant/:by/:value',function(req,res){
                     if (err) throw err
                     if (result != null) {
                         console.log(result);
-
+                        res.writeHead(200, { 'Content-Type': 'application/json' });
+                        result.forEach(function (ele) {
+                            res.write(JSON.stringify(ele));
+                        })
                     } else {
                         res.render('landing', {msg: 'you found nothing'});
                     }
@@ -377,7 +389,10 @@ app.get('/api/restaurant/:by/:value',function(req,res){
                     if (err) throw err
                     if (result != null) {
                         console.log(result);
-
+                        res.writeHead(200, { 'Content-Type': 'application/json' });
+                        result.forEach(function (ele) {
+                            res.write(JSON.stringify(ele));
+                        })
                     } else {
                         res.render('landing', {msg: 'you found nothing'});
                     }
@@ -386,6 +401,13 @@ app.get('/api/restaurant/:by/:value',function(req,res){
         }
 	});
 })
+
+
+var test = {daniel:123,ethan:456,Alan:789};
+
+
+
+
 
 
 //logout
