@@ -17,7 +17,7 @@
       <a href=/gmap?lat=<%= restaurants[0].address[0].coord[0].lat %>&lon=<%= restaurants[0].address[0].coord[0].lon %>&title=<%= restaurants[0].name %>>Google Map</a>
       <%_ } %>
       <a href="#"><button>Rate</button></a>
-      <a href="#"><button>Edit</button></a>
+      <a href="/change?_id=<%= restaurants[0]._id %>"><button>Edit</button></a>
       <a href="/delete?_id=<%= restaurants[0]._id %>"><button>Delete</button></a>
       <a href="/"><button>Go Back</button></a>
    </body>

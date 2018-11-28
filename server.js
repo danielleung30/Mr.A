@@ -270,6 +270,33 @@ app.get('/display', function(req,res) {
 	});
 });
 
+//Edit
+app.get('/change', function(req,res) {
+	MongoClient.connect(mongourl, function(err,db) {
+	  try {
+		assert.equal(err,null);
+	  } catch (err) {
+		res.set({"Content-Type":"text/plain"});
+		res.status(500).end("MongoClient connect() failed!");
+	  }      
+	  console.log('Connected to MongoDB');
+	  var criteria = {};
+	  criteria['_id'] = ObjectID(req.query._id);
+	  findRestaurants(db,criteria, function(restaurants) {
+		db.close();
+		console.log('Disconnected MongoDB');		
+		res.render('change.ejs',{restaurants:restaurants});
+	  });
+	});
+});
+
+app.post('/change', function (req, res) {
+	var _id = req.query._id
+	var ObjectID = require('mongodb').ObjectID
+	var o_id = new ObjectID(_id)
+	console.log(o_id)	
+});
+
 //delete
 app.get('/delete', function (req, res) {
 	MongoClient.connect(mongourl, function(err,db) {
