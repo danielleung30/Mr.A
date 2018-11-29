@@ -102,8 +102,8 @@ app.post('/register', function (req, res) {
 
 //create new restaurant
 app.get('/create', function (req, res) {
-	res.sendFile(__dirname + '/public/create.html')
-	//res.render('create');
+	//res.sendFile(__dirname + '/public/create.html')
+	res.render('create');
 })
 
 app.post('/create', function (req, res) {
@@ -199,7 +199,7 @@ app.post('/search', function (req, res) {
 		if (cuisine != "") {
 			find.cuisine = cuisine;
 		}
-		console.log("find: "+find.toString());
+		console.log("find: " + find.toString());
 		db.collection("restaurants").find(find).toArray(function (err, result) {
 			if (err) throw err
 
@@ -208,12 +208,12 @@ app.post('/search', function (req, res) {
 				var lat = result[0].address[0].coord[0].lat
 				var lon = result[0].address[0].coord[0].lon;
 				var showGmap = ((lat && lon) != null);
-				console.log("Show Gmap: "+showGmap);
+				console.log("Show Gmap: " + showGmap);
 				//res.render('display.ejs', { restaurants: result, g: showGmap });
-				res.render('list.ejs', { name: req.session.username, restaurants: result, c:find});
+				res.render('list.ejs', { name: req.session.username, restaurants: result, c: find });
 				//res.render('landing',{msg:result});
 			} else {
-				res.render('list.ejs', { name: req.session.username, restaurants: result, c:find});
+				res.render('list.ejs', { name: req.session.username, restaurants: result, c: find });
 				//res.render('landing', { msg: [{ name: 'you found nothing' }] });
 			}
 			db.close()
@@ -239,7 +239,7 @@ app.get('/read', function (req, res) {
 				db.close();
 				console.log("Showing " + restaurants.length + " document(s)");
 				console.log('Disconnected MongoDB\n');
-				res.render('list.ejs', { name: req.session.username, restaurants: restaurants, c:"{}" });
+				res.render('list.ejs', { name: req.session.username, restaurants: restaurants, c: "{}" });
 			});
 		});
 	}
@@ -276,7 +276,15 @@ app.get('/display', function (req, res) {
 			var lon = restaurants[0].address[0].coord[0].lon;
 			var showGmap = ((lat && lon) != null);
 			console.log("show Gmap: " + showGmap);
-			res.render('display.ejs', { restaurants: restaurants, g: showGmap });
+
+			var grades = restaurants[0].grades;
+			var sum =0
+			for(var grade of grades){
+				sum = sum+ grade.score;
+			};
+			var avg = sum/grades.length;
+			var msg = (avg) ?  avg+" (Average) " : " No Ratings" ;
+			res.render('display.ejs', { restaurants: restaurants, g: showGmap, avg:msg });
 		});
 	});
 });
@@ -398,6 +406,75 @@ app.post('/change', function (req, res) {
 	}
 });
 
+//Rate
+app.get('/rate', function (req, res) {
+	MongoClient.connect(mongourl, function (err, db) {
+		try {
+			assert.equal(err, null);
+		} catch (err) {
+			res.set({ "Content-Type": "text/plain" });
+			res.status(500).end("MongoClient connect() failed!");
+		}
+		var criteria = {};
+		criteria['_id'] = ObjectID(req.query._id);
+		findRestaurants(db, criteria, function (restaurants) {
+			console.log(restaurants[0].grades)
+			var grades = restaurants[0].grades;
+			var hasRated = false;
+			for(var grade of grades){
+				if (grade.user == req.session.username) {
+					hasRated = true;
+				} 
+			};
+			db.close();
+			console.log(hasRated?"You have rated this restaurant!!! \n":"You can rate Restaurants:" + restaurants[0].name);
+			res.render('rate.ejs', { restaurants: restaurants, g: hasRated });
+		});
+	});
+});
+
+app.post('/rate', function (req, res) {
+	var criteria = {};
+	criteria['_id'] = ObjectID(req.query._id);
+	if (req.url.startsWith('/rate') && req.method.toLowerCase() == 'post') {
+		var form = new formidable.IncomingForm();
+		form.parse(req, function (err, fields, files) {
+			if (err) {
+				console.log(err);
+			}
+			mongoose.connect(mongourl, { useNewUrlParser: true });
+			var restaurantsSchema = require('./model/restaurants');
+			var db = mongoose.connection;
+			var score = fields.score;
+			var gradeObj={};
+			
+			db.on('error', console.error.bind(console, 'connection error:'));
+			db.once('open', function (callback) {
+				var Restaurants = mongoose.model('Restaurants', restaurantsSchema)
+				gradeObj.user = req.session.username;
+				gradeObj.score = score;
+				if(score==null||score=="")
+				{
+					res.status(500).send('/rate invalid query parameters!');
+				}else{
+				Restaurants.updateOne(criteria,
+					{
+						$push: { grades: gradeObj }
+					},
+					function (err) {
+						if (err) {
+							console.log(err);
+						}
+						res.redirect('/display?_id=' + criteria['_id']);
+						//res.render('display.ejs',{restaurants:restaurants});
+						console.log("Rate Success!\n");
+					});}
+			});
+		})
+		return
+	}
+});
+
 //delete
 app.get('/delete', function (req, res) {
 	MongoClient.connect(mongourl, function (err, db) {
@@ -451,7 +528,7 @@ app.get('/api/restaurant/:by/:value', function (req, res) {
 						console.log(result);
 						res.writeHead(200, { 'Content-Type': 'application/json' });
 						result.forEach(function (ele) {
-							res.write(JSON.stringify(ele));
+							res.write(JSON.stringify(ele,null,'\t'));
 						})
 						res.end();
 					} else {
@@ -467,7 +544,7 @@ app.get('/api/restaurant/:by/:value', function (req, res) {
 						console.log(result);
 						res.writeHead(200, { 'Content-Type': 'application/json' });
 						result.forEach(function (ele) {
-							res.write(JSON.stringify(ele));
+							res.write(JSON.stringify(ele,null,'\t'));
 						})
 					} else {
 						res.render('landing', { msg: 'you found nothing' });
@@ -482,7 +559,7 @@ app.get('/api/restaurant/:by/:value', function (req, res) {
 						console.log(result);
 						res.writeHead(200, { 'Content-Type': 'application/json' });
 						result.forEach(function (ele) {
-							res.write(JSON.stringify(ele));
+							res.write(JSON.stringify(ele,null,'\t'));
 						})
 					} else {
 						res.render('landing', { msg: 'you found nothing' });

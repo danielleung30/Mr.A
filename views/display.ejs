@@ -11,12 +11,18 @@
       <p>Building: <%= restaurants[0].address[0].building %></p>
       <p>Zipcode: <%= restaurants[0].address[0].zipcode %></p>
       <p>GPS: [<%= restaurants[0].address[0].coord[0].lat %>,<%= restaurants[0].address[0].coord[0].lon %>]</p>
-      <p>Rating: ratehere</p>
+      <p>Rating: <%= avg %></p>
+      <ol>
+            <% for (var grade of restaurants[0].grades) { %>
+              <li> <%= grade.score %> (<%= grade.user %>)</li>        
+            <% }  %>                       
+      </ol>
+
       <p>Created by: <%= restaurants[0].owner %></p>
       <%_ if (g) { %>
-      <a href=/gmap?lat=<%= restaurants[0].address[0].coord[0].lat %>&lon=<%= restaurants[0].address[0].coord[0].lon %>&title=<%= restaurants[0].name %>>Google Map</a>
+      <a href=/gmap?lat=<%= restaurants[0].address[0].coord[0].lat %>&lon=<%= restaurants[0].address[0].coord[0].lon %>&title=<%= restaurants[0].name %>><button>Google Map</button></a>
       <%_ } %>
-      <a href="#"><button>Rate</button></a>
+      <a href="/rate?_id=<%= restaurants[0]._id %>"><button>Rate</button></a>
       <a href="/change?_id=<%= restaurants[0]._id %>"><button>Edit</button></a>
       <a href="/delete?_id=<%= restaurants[0]._id %>"><button>Delete</button></a>
       <a href="/"><button>Go Back</button></a>
