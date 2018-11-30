@@ -190,14 +190,18 @@ app.post('/search', function (req, res) {
 		var cuisine = req.body.cuisine;
 
 		var find = {};
+		var criteria;
 		if (name != "") {
 			find.name = name;
+			criteria = "name";
 		}
 		if (borough != "") {
 			find.borough = borough;
+			criteria = "borough";
 		}
 		if (cuisine != "") {
 			find.cuisine = cuisine;
+			criteria = "cuisine";
 		}
 		console.log("find: " + find.toString());
 		db.collection("restaurants").find(find).toArray(function (err, result) {
@@ -205,15 +209,10 @@ app.post('/search', function (req, res) {
 
 			if (result.length != 0) {
 				console.log(result[0].name);
-				var lat = result[0].address[0].coord[0].lat
-				var lon = result[0].address[0].coord[0].lon;
-				var showGmap = ((lat && lon) != null);
-				console.log("Show Gmap: " + showGmap);
-				//res.render('display.ejs', { restaurants: result, g: showGmap });
-				res.render('list.ejs', { name: req.session.username, restaurants: result, c: find });
+				res.render('list.ejs', { name: req.session.username, restaurants: result, c: criteria });
 				//res.render('landing',{msg:result});
 			} else {
-				res.render('list.ejs', { name: req.session.username, restaurants: result, c: find });
+				res.render('list.ejs', { name: req.session.username, restaurants: result, c: criteria });
 				//res.render('landing', { msg: [{ name: 'you found nothing' }] });
 			}
 			db.close()
